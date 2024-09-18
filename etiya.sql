@@ -78,8 +78,9 @@
        FirstName, 
        LastName, 
        HireDate,
-       FLOOR(DATEDIFF(CURDATE(), HireDate) / 365) AS YearsEmployed
+       FLOOR((julianday('now') - julianday(HireDate)) / 365.25) AS YearsEmployed
    FROM Employees;
+
 
 11. SELECT OrderID, 
     ROUND(SUM(UnitPrice * Quantity), 0) AS RoundedTotalPrice
