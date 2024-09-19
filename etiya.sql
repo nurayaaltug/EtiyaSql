@@ -152,6 +152,233 @@
     WHERE UnitsInStock = 0;
 
 
+------------------------WORKSHOP3-------------------------------------------------
+
+1. SELECT Customers.ContactName AS CustomerName, 
+       Orders.OrderID, 
+       Orders.OrderDate
+   FROM Customers
+   JOIN Orders 
+   ON Customers.CustomerID = Orders.CustomerID;
+
+2.SELECT Suppliers.CompanyName, 
+       Products.ProductName
+  FROM Suppliers
+  LEFT JOIN Products 
+  ON Suppliers.SupplierID = Products.SupplierID;
+
+3. SELECT Orders.OrderID, 
+       Orders.OrderDate, 
+       Employees.EmployeeID, 
+       Employees.FirstName, 
+       Employees.LastName
+   FROM Orders
+   LEFT JOIN Employees 
+   ON Orders.EmployeeID = Employees.EmployeeID;
+
+4. SELECT Customers.CustomerID, 
+       Customers.ContactName, 
+       Orders.OrderID, 
+       Orders.OrderDate
+  FROM Customers
+  FULL OUTER JOIN Orders 
+  ON Customers.CustomerID = Orders.CustomerID;
+
+5. SELECT Products.ProductName, 
+       Categories.CategoryName
+   FROM Products
+   CROSS JOIN Categories;
+
+6.SELECT Customers.ContactName AS CustomerName, 
+       Orders.OrderID, 
+       Orders.OrderDate, 
+       Employees.FirstName || ' ' || Employees.LastName AS EmployeeName
+   FROM Orders
+   JOIN Customers 
+   ON Orders.CustomerID = Customers.CustomerID
+   JOIN Employees 
+   ON Orders.EmployeeID = Employees.EmployeeID
+   WHERE strftime('%Y', Orders.OrderDate) = '2013';
+
+7. SELECT
+   Customers.CustomerID,
+   Customers.CustomerName,
+   COUNT(Orders.OrderID) AS OrderCount
+   FROM
+   Customers
+   JOIN Orders ON Customers.CustomerID = Orders.CustomerID
+   GROUP BY
+   Customers.CustomerID,
+   Customers.CustomerName
+   HAVING
+   OrderCount > 5;
+
+8. SELECT
+   p.ProductName,
+   SUM(od.Quantity) AS TotalQuantitySold,
+   SUM(od.Quantity * od.UnitPrice) AS TotalRevenue
+   FROM
+   [Order Details] od
+   JOIN Products p ON od.ProductID = p.ProductID
+   GROUP BY
+   p.ProductName;
+
+9.SELECT
+  c.ContactName,
+  o.OrderID,
+  o.OrderDate
+FROM
+Customers c
+JOIN Orders o ON c.CustomerID = o.CustomerID
+WHERE
+c.ContactName LIKE 'B%';
+
+10.SELECT
+  c.CategoryID,
+  c.CategoryName,
+  p.ProductName
+  FROM
+  Categories c
+  LEFT JOIN Products p ON c.CategoryID = p.CategoryID
+  WHERE
+  p.ProductName IS NULL;
+
+11. SELECT 
+   e.EmployeeID AS EmployeeID,
+   e.FirstName || ' ' || e.LastName AS EmployeeName,
+   m.EmployeeID AS ManagerID,
+   m.FirstName || ' ' || m.LastName AS ManagerName
+   FROM 
+   Employees e
+   LEFT JOIN Employees m ON e.ReportsTo = m.EmployeeID;
+
+12. WITH MaxPrices AS (
+   SELECT 
+      CategoryID,
+      MAX(UnitPrice) AS MaxPrice
+   FROM 
+      Products
+   GROUP BY 
+      CategoryID
+   )
+
+   SELECT 
+   p.CategoryID,
+   p.ProductName,
+   p.UnitPrice
+   FROM 
+   Products p
+   JOIN MaxPrices mp ON p.CategoryID = mp.CategoryID AND p.UnitPrice = mp.MaxPrice
+   ORDER BY 
+   p.CategoryID, p.UnitPrice;
+
+13. SELECT
+   o.OrderID,
+   o.CustomerID,
+   o.OrderDate,
+   od.ProductID,
+   od.UnitPrice,
+   od.Quantity,
+   (od.UnitPrice * od.Quantity) AS TotalPrice
+   FROM
+   Orders o
+   JOIN [Order Details] od ON o.OrderID = od.OrderID
+   ORDER BY
+   o.OrderID ASC;
+
+14. SELECT
+   e.EmployeeID,
+   e.FirstName,
+   e.LastName,
+   COUNT(o.OrderID) AS NumberOfOrders
+   FROM
+   Employees e
+   LEFT JOIN Orders o ON e.EmployeeID = o.EmployeeID
+   GROUP BY
+   e.EmployeeID, e.FirstName, e.LastName
+   ORDER BY
+   e.EmployeeID;
+
+15. SELECT
+   p1.ProductID AS LowerPricedProductID,
+   p1.ProductName AS LowerPricedProductName,
+   p1.UnitPrice AS LowerPrice
+   FROM
+   Products p1
+   JOIN Products p2 ON p1.CategoryID = p2.CategoryID
+                  AND p1.UnitPrice < p2.UnitPrice
+   ORDER BY
+   p1.CategoryID, p1.UnitPrice;
+
+16. SELECT
+   s.SupplierID,
+   s.CompanyName AS SupplierName,
+   p.ProductID,
+   p.ProductName,
+   p.UnitPrice
+   FROM
+   Suppliers s
+   JOIN Products p ON s.SupplierID = p.SupplierID
+   WHERE
+   p.UnitPrice = (
+      SELECT
+         MAX(p2.UnitPrice)
+      FROM
+         Products p2
+      WHERE
+         p2.SupplierID = s.SupplierID
+   )
+   ORDER BY
+   s.SupplierID;
+
+
+17. SELECT
+   e.EmployeeID,
+   e.FirstName,
+   e.LastName,
+   o.OrderID,
+   o.OrderDate
+   FROM
+   Employees e
+   LEFT JOIN Orders o ON e.EmployeeID = o.EmployeeID
+   WHERE
+   o.OrderDate = (
+      SELECT
+         MAX(o2.OrderDate)
+      FROM
+         Orders o2
+      WHERE
+         o2.EmployeeID = e.EmployeeID
+   );
+
+18. SELECT
+   COUNT(*) AS NumberOfProducts
+   FROM
+   Products
+   WHERE
+   UnitPrice > 20;
+
+19. SELECT
+   c.ContactName,
+   o.OrderID,
+   o.OrderDate
+   FROM
+   Orders o
+   JOIN Customers c ON o.CustomerID = c.CustomerID
+   WHERE
+   o.OrderDate BETWEEN '2013-01-01' AND '2018-12-31';
+
+20. SELECT
+   c.CustomerID,
+   c.ContactName
+   FROM
+   Customers c
+   LEFT JOIN Orders o ON c.CustomerID = o.CustomerID
+   WHERE
+   o.OrderID IS NULL;
+
+
+
 
 
 
