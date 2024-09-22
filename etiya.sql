@@ -378,6 +378,300 @@ c.ContactName LIKE 'B%';
    o.OrderID IS NULL;
 
 
+----------------------------WORKSHOP4---------------------------------------------------------------
+
+1.SELECT 
+  ProductName, 
+  UnitPrice 
+FROM 
+  Products 
+ORDER BY 
+  UnitPrice DESC 
+LIMIT 1;
+
+2. SELECT 
+  OrderID, 
+  CustomerID, 
+  OrderDate 
+FROM 
+  Orders 
+ORDER BY 
+  OrderDate DESC 
+LIMIT 1;
+
+3. SELECT 
+  ProductName, 
+  UnitPrice 
+FROM 
+  Products 
+WHERE 
+  UnitPrice > (SELECT AVG(UnitPrice) FROM Products);
+
+4. SELECT 
+  ProductName, 
+  CategoryID, 
+  UnitPrice 
+FROM 
+  Products 
+WHERE 
+  CategoryID IN (1, 2, 3); -- Kategori ID'lerini buraya yazabilirsiniz.
+
+5. SELECT 
+  CategoryID, 
+  MAX(UnitPrice) AS MaxPrice 
+FROM 
+  Products 
+GROUP BY 
+  CategoryID 
+ORDER BY 
+  MaxPrice DESC;
+
+6.  SELECT c.CustomerID, c.ContactName, o.OrderID, c.Country
+   FROM Customers c
+   JOIN Orders o ON c.CustomerID = o.CustomerID
+   WHERE c.Country = 'Germany';
+
+7.  SELECT 
+     ProductName, 
+     CategoryID, 
+     UnitPrice 
+   FROM 
+     Products p1 
+   WHERE 
+     UnitPrice > (
+       SELECT 
+         AVG(UnitPrice) 
+       FROM 
+         Products p2 
+       WHERE 
+         p2.CategoryID = p1.CategoryID
+     );
+
+8.  SELECT 
+     c.CustomerID, 
+     c.CustomerName, 
+     o.OrderID, 
+     o.OrderDate 
+   FROM 
+     Customers c 
+   JOIN 
+     Orders o ON c.CustomerID = o.CustomerID 
+   WHERE 
+     o.OrderDate = (
+       SELECT 
+         MAX(o2.OrderDate) 
+       FROM 
+         Orders o2 
+       WHERE 
+         o2.CustomerID = c.CustomerID
+     );
+
+9. SELECT 
+  e.EmployeeID, 
+  e.EmployeeName, 
+  e.DepartmentID, 
+  e.Salary, 
+  CASE 
+    WHEN e.Salary > (
+      SELECT 
+        AVG(e2.Salary) 
+      FROM 
+        Employees e2 
+      WHERE 
+        e2.DepartmentID = e.DepartmentID
+    ) 
+    THEN 'Above Average' 
+    ELSE 'Below Average' 
+  END AS SalaryComparison 
+FROM 
+  Employees e;
+
+10. SELECT 
+     o.OrderID, 
+     SUM(od.Quantity) AS TotalQuantity 
+   FROM 
+     Orders o 
+   JOIN 
+     OrderDetails od ON o.OrderID = od.OrderID 
+   GROUP BY 
+     o.OrderID 
+   HAVING 
+     TotalQuantity >= 10;
+
+11. SELECT 
+     CategoryID, 
+     AVG(UnitPrice) AS AvgMaxPrice 
+   FROM 
+     Products 
+   WHERE 
+     UnitPrice = (
+       SELECT 
+         MAX(UnitPrice) 
+       FROM 
+         Products AS p2 
+       WHERE 
+         p2.CategoryID = Products.CategoryID
+     ) 
+   GROUP BY 
+     CategoryID;
+
+12. SELECT 
+     c.CustomerID, 
+     c.CustomerName, 
+     COUNT(o.OrderID) AS TotalOrders 
+   FROM 
+     Customers c 
+   LEFT JOIN 
+     Orders o ON c.CustomerID = o.CustomerID 
+   GROUP BY 
+     c.CustomerID, 
+     c.CustomerName 
+   ORDER BY 
+     TotalOrders DESC;
+
+13.  WITH CustomerOrderCounts AS (
+    SELECT c.CustomerID, c.CompanyName, COUNT(o.OrderID) AS TotalOrders, MAX(o.OrderDate) AS LastOrderDate
+    FROM Customers c
+    JOIN Orders o ON c.CustomerID = o.CustomerID
+    GROUP BY c.CustomerID, c.CompanyName
+)
+   SELECT CustomerID, CompanyName, TotalOrders, LastOrderDate
+   FROM CustomerOrderCounts
+   ORDER BY TotalOrders DESC
+   LIMIT 5;
+
+14. SELECT 
+     CategoryID, 
+     COUNT(*) AS TotalProducts 
+   FROM 
+     Products 
+   GROUP BY 
+     CategoryID 
+   HAVING 
+     TotalProducts > 15;
+
+15. SELECT c.CustomerID, c.CompanyName, COUNT(DISTINCT od.ProductID) AS UniqueProducts
+   FROM Customers c
+   JOIN Orders o ON c.CustomerID = o.CustomerID
+   JOIN "Order Details" od ON o.OrderID = od.OrderID
+   GROUP BY c.CustomerID, c.CompanyName
+   HAVING COUNT(DISTINCT od.ProductID) <= 2;
+
+16.  SELECT 
+     s.SupplierID, 
+     s.SupplierName, 
+     COUNT(p.ProductID) AS TotalProducts 
+   FROM 
+     Suppliers s 
+   JOIN 
+     Products p ON s.SupplierID = p.SupplierID 
+   GROUP BY 
+     s.SupplierID, 
+     s.SupplierName 
+   HAVING 
+     TotalProducts > 20;
+
+17.  WITH CustomerMaxPrice AS (
+    SELECT o.CustomerID, od.ProductID, MAX(p.UnitPrice) AS MaxPrice
+    FROM Orders o
+    JOIN "Order Details" od ON o.OrderID = od.OrderID
+    JOIN Products p ON od.ProductID = p.ProductID
+    GROUP BY o.CustomerID, od.ProductID
+   )
+   SELECT c.CustomerID, c.CompanyName, p.ProductName, cmp.MaxPrice
+   FROM CustomerMaxPrice cmp
+   JOIN Customers c ON cmp.CustomerID = c.CustomerID
+   JOIN Products p ON cmp.ProductID = p.ProductID
+   WHERE (cmp.CustomerID, cmp.MaxPrice) IN (
+       SELECT CustomerID, MAX(MaxPrice)
+       FROM CustomerMaxPrice
+       GROUP BY CustomerID
+   );
+
+18.  SELECT e.EmployeeID, e.FirstName, e.LastName, SUM(od.Quantity * p.UnitPrice) AS TotalOrderValue
+   FROM Employees e
+   JOIN Orders o ON e.EmployeeID = o.EmployeeID
+   JOIN "Order Details" od ON o.OrderID = od.OrderID
+   JOIN Products p ON od.ProductID = p.ProductID
+   GROUP BY e.EmployeeID, e.FirstName, e.LastName
+   HAVING SUM(od.Quantity * p.UnitPrice) > 10000;
+
+19. WITH ProductOrderCounts AS (
+    SELECT p.ProductID, p.ProductName, p.CategoryID, SUM(od.Quantity) AS TotalOrdered
+    FROM Products p
+    JOIN "Order Details" od ON p.ProductID = od.ProductID
+    JOIN Orders o ON od.OrderID = o.OrderID
+    GROUP BY p.ProductID, p.ProductName, p.CategoryID
+   )
+   SELECT poc.CategoryID, p.ProductName, poc.TotalOrdered
+   FROM ProductOrderCounts poc
+   JOIN Products p ON poc.ProductID = p.ProductID
+   WHERE (poc.CategoryID, poc.TotalOrdered) IN (
+       SELECT CategoryID, MAX(TotalOrdered)
+       FROM ProductOrderCounts
+       GROUP BY CategoryID
+   );
+
+
+20.  SELECT 
+     c.CustomerID, 
+     c.CustomerName, 
+     p.ProductName, 
+     o.OrderDate 
+   FROM 
+     Customers c 
+   JOIN 
+     Orders o ON c.CustomerID = o.CustomerID 
+   JOIN 
+     OrderDetails od ON o.OrderID = od.OrderID 
+   JOIN 
+     Products p ON od.ProductID = p.ProductID 
+   WHERE 
+     o.OrderDate = (
+       SELECT 
+         MAX(o2.OrderDate) 
+       FROM 
+         Orders o2 
+       WHERE 
+         o2.CustomerID = c.CustomerID
+     );
+
+
+21. SELECT 
+     e.EmployeeID, 
+     e.FirstName, 
+     e.LastName, 
+     o.OrderID, 
+     o.OrderDate, 
+     MAX(od.UnitPrice * od.Quantity) AS MaxOrderValue
+   FROM 
+     Employees e
+   JOIN 
+     Orders o ON e.EmployeeID = o.EmployeeID 
+   JOIN 
+     "Order Details"s od ON o.OrderID = od.OrderID 
+   GROUP BY 
+     e.EmployeeID, 
+     e.FirstName, 
+     e.LastName, 
+     o.OrderID, 
+     o.OrderDate
+   ORDER BY 
+     e.EmployeeID, 
+     MaxOrderValue DESC;
+
+22.  SELECT p.ProductID, p.ProductName, p.CategoryID, SUM(od.Quantity) AS TotalOrdered
+   FROM Products p
+   JOIN "Order Details" od ON p.ProductID = od.ProductID
+   JOIN Orders o ON od.OrderID = o.OrderID
+   GROUP BY p.ProductID, p.ProductName, p.CategoryID
+   ORDER BY TotalOrdered DESC
+   LIMIT 1;
+
+
+
+
+
 
 
 
